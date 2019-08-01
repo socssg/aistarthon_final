@@ -31,23 +31,26 @@ class MultimodalDataset(Dataset):
         #print('phase: ', phase)
         #print('path: ', os.path.join(root, self.phase, phase.split('_')[0]+'_data'))
         
-        
-        label_tot = pd.read_csv(os.path.join(root, self.phase, phase.split('_')[0]+'_label'))
-        self.labels = dict()
-        self.labels['emotion'] = []
-        self.labels['age'] = []
-        labels_emotion = list(label_tot.emotion)
-        labels_age = list(label_tot.age)
+        self.data_arch = dict()
+        if self.phase == 'train' :
+            label_tot = pd.read_csv(os.path.join(root, self.phase, phase.split('_')[0]+'_label'))
+            self.labels = dict()
+            self.labels['emotion'] = []
+            self.labels['age'] = []
+            labels_emotion = list(label_tot.emotion)
+            labels_age = list(label_tot.age)
         
         temp_shot_list = alphanumeric_sort(os.listdir(os.path.join(root, self.phase, phase.split('_')[0]+'_data')))
         self.shot_list = []
         for i, shot_path in enumerate(temp_shot_list) :
             shot_path = os.path.join(self.root, self.phase, self.phase.split('_')[0] + '_data', shot_path)
             img_name_list = os.listdir(shot_path)
+            self.data_arch[i] = len(img_name_list)
             for img_name in img_name_list:
                 self.shot_list.append(os.path.join(self.root, self.phase, self.phase.split('_')[0] + '_data', shot_path,img_name))
-                self.labels['emotion'].append(labels_emotion[i])
-                self.labels['age'].append(labels_age[i])
+                if self.phase == 'train' :
+                    self.labels['emotion'].append(labels_emotion[i])
+                    self.labels['age'].append(labels_age[i])
 
         print(len(self.shot_list))
 
