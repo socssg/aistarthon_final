@@ -84,8 +84,22 @@ def _infer(root, phase, model, task):
         for i, (images, _, _) in enumerate(data_loader):
             images = images.cuda()
             logits = model(images)
-            _, predicted = torch.max(logits, dim=1)
-            y_pred += [predicted]
+            if i == 0 :
+                y_2d_pred = logits
+            else :
+                y_2d_pred = torch.cat((y_2d_pred,logits),0)
+        data_arch = data_loader.dataset.data_arch
+        previous_samples = 0
+        for i in range(0,len(data_arch)) :
+            NumCurrSampes = data_arch[i]
+            left = previous_samples
+            right = previous_samples + NumCurrSampes - 1
+            previous_samples = right + 1
+            CurrSampes = torch.index_select(y_2d_pred, 0, torch.tensor(list(range(left,right+1)),dtype=torch.long).cuda())
+            CurrSampes = torch.sum(CurrSampes,dim=0)
+            CurrSampes = CurrSampes.expand_as(torch.zeros(1,6))
+            _, predicted = torch.max(CurrSampes, dim=1)
+            y_pred += [predicted]            
 
         print('end infer')
         y_pred = torch.cat(y_pred, dim=0).cpu().numpy().tolist()
